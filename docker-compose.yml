@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  swtpm:
+    build:
+      context: ./swtpm
+      dockerfile: Dockerfile
+    ports:
+     - 2321:2321/tcp
+     - 2322:2322/tcp
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "2321" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  zekro-swtpm:
+    build:
+      context: ./zekro
+      dockerfile: Dockerfile
+      args:
+        # if ENABLE_TIMINGS=1, then the program will compute the execution time of each TPM command
+        - ENABLE_TIMINGS=1
+        # if WRITE_TIMINGS_TO_FILE=1, then the program writes (appends) the execution times to log files corresponding to each TPM command in the directory as specified by the TIMINGS_DIR environment variable
+        - WRITE_TIMINGS_TO_FILE=1
+        # if WRITE_TIMINGS_TO_STDOUT=1, then the program writes the execution times to standard output (stdout) as they appear
+        - WRITE_TIMINGS_TO_STDOUT=1
+        # if DEBUG_TSS=1, then the program will also output detailed traces of the TSS<->TPM communication to stdout
+        - DEBUG_TSS=0
+    volumes:
+      - ./timings/swtpm:/tmp/timings
+    environment:
+      - TPM_SERVER_NAME=host.docker.internal
+      # output timings to mounted host directory
+      - TIMINGS_DIR=/tmp/timings
+    depends_on:
+      swtpm:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

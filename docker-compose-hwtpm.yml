@@ -1,0 +1,25 @@
+version: '3'
+services:
+  zekro-hwtpm:
+    build:
+      context: ./zekro
+      dockerfile: Dockerfile
+      args:
+        # if ENABLE_TIMINGS=1, then the program will compute the execution time of each TPM command
+        - ENABLE_TIMINGS=1
+        # if WRITE_TIMINGS_TO_FILE=1, then the program writes (appends) the execution times to log files corresponding to each TPM command
+        - WRITE_TIMINGS_TO_FILE=1
+        # if WRITE_TIMINGS_TO_STDOUT=1, then the program writes the execution times to standard output (stdout) as they appear
+        - WRITE_TIMINGS_TO_STDOUT=1
+        # if DEBUG_TSS=1, then the program will also output detailed traces of the TSS<->TPM communication to stdout
+        - DEBUG_TSS=0
+        # if HWTPM=1, then the program will attempt to use the concrete (hardware) TPM exposed by the host instead of the software TPM
+        - HWTPM=1
+    volumes:
+      - ./timings/hwtpm:/tmp/timings
+    devices:
+      - /dev/tpm0:/dev/tpm0
+      - /dev/tpmrm0:/dev/tpmrm0
+    environment:
+      # output timings to mounted host directory
+      - TIMINGS_DIR=/tmp/timings

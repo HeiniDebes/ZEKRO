@@ -1,0 +1,8 @@
+/build/*
+*.bin
+zekro
+cmake_install.cmake
+/CMakeFiles/*
+CMakeCache.txt
+/out/*
+Makefile
